@@ -13,3 +13,7 @@ __pycache__/
 
 # Node
 node_modules/
+
+# CSVs
+data/csv/
+*.csv
