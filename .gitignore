@@ -1,1 +1,15 @@
+# OS / editor junk
+.DS_Store
+Thumbs.db
+
+# IntelliJ / JetBrains
+.idea/
+*.iml
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Node
 node_modules/
