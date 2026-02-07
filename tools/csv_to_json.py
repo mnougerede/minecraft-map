@@ -42,8 +42,17 @@ def main():
         reader = csv.DictReader(f)
         headers = {norm(h): h for h in reader.fieldnames or []}
 
-        required = ["name", "x", "z"]
+        name_keys = ["name", "place"]
+        if not any(k in headers for k in name_keys):
+            print("Missing required column: name or place")
+            sys.exit(1)
+
+        required = ["x", "z"]
         missing = [h for h in required if h not in headers]
+        if missing:
+            print(f"Missing required columns: {missing}")
+            sys.exit(1)
+
         if missing:
             print(f"Missing required columns: {missing}")
             sys.exit(1)
@@ -52,7 +61,8 @@ def main():
         skipped = 0
 
         for row in reader:
-            name = row[headers["name"]].strip()
+            name_key = next(k for k in ["name", "place"] if k in headers)
+            name = row[headers[name_key]].strip()
             if not name:
                 skipped += 1
                 continue
