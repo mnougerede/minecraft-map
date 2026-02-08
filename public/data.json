@@ -1,6 +1,498 @@
 {
   "points": [
-    { "name": "Spawn", "x": 0, "z": 0 },
-    { "name": "Main Base", "x": 120, "z": -340 }
-  ]
+    {
+      "name": "Main Base",
+      "x": 0,
+      "z": 180,
+      "y": 67,
+      "type": "Base"
+    },
+    {
+      "name": "Nearby Village",
+      "x": 270,
+      "z": -330,
+      "y": 65,
+      "type": "Village",
+      "notes": "where Ellie built flooded sand houses"
+    },
+    {
+      "name": "Far Snowy Village",
+      "x": 720,
+      "z": 1183,
+      "y": 63,
+      "type": "Village"
+    },
+    {
+      "name": "Mountain Village",
+      "x": 600,
+      "z": -370,
+      "y": 102,
+      "type": "Village"
+    },
+    {
+      "name": "Cages and Scarecrows Village",
+      "x": -800,
+      "z": 250,
+      "y": 69,
+      "type": "Village"
+    },
+    {
+      "name": "Snowy Pumpkin Village",
+      "x": -400,
+      "z": 600,
+      "y": 72,
+      "type": "Village"
+    },
+    {
+      "name": "New Mountain Village",
+      "x": -800,
+      "z": 600,
+      "y": 70,
+      "type": "Village"
+    },
+    {
+      "name": "Jungle",
+      "x": -1550,
+      "z": -80,
+      "y": 63,
+      "type": "Biome"
+    },
+    {
+      "name": "Lakeside Pumpkin Village",
+      "x": -450,
+      "z": 200,
+      "y": 65,
+      "type": "Village"
+    },
+    {
+      "name": "Witch's Hut in Swamp",
+      "x": -1250,
+      "z": 550,
+      "y": 62
+    },
+    {
+      "name": "Witch's Hut near Swamp",
+      "x": -975,
+      "z": 512,
+      "y": 73
+    },
+    {
+      "name": "New Far Snowy Village",
+      "x": -800,
+      "z": 1850,
+      "y": 64,
+      "type": "Village"
+    },
+    {
+      "name": "Tower",
+      "x": -900,
+      "z": 1650,
+      "y": 66
+    },
+    {
+      "name": "Castle Village",
+      "x": -900,
+      "z": 3350,
+      "y": 74,
+      "type": "Village"
+    },
+    {
+      "name": "Nether Portal Ruin",
+      "x": -1090,
+      "z": 3270,
+      "y": 79
+    },
+    {
+      "name": "Shipwreck",
+      "x": -300,
+      "z": 4370,
+      "y": 64
+    },
+    {
+      "name": "Bamboo Jungle",
+      "x": -570,
+      "z": 4770,
+      "y": 66
+    },
+    {
+      "name": "Jungle Mountain Village",
+      "x": -310,
+      "z": 4700,
+      "y": 106
+    },
+    {
+      "name": "Buried Treasure",
+      "x": -56,
+      "z": 4745,
+      "y": 64
+    },
+    {
+      "name": "Underwater Ruin??",
+      "x": 70,
+      "z": 3255,
+      "y": 62,
+      "notes": "Lanterns and stone structure under the sea"
+    },
+    {
+      "name": "Lava Mountain Village",
+      "x": -200,
+      "z": 2950,
+      "y": 77
+    },
+    {
+      "name": "Another snowy village",
+      "x": -400,
+      "z": 1200,
+      "y": 67,
+      "notes": "Where we found a bunch of smokers and blast furnaces"
+    },
+    {
+      "name": "Really Ruined Portal",
+      "x": -266,
+      "z": 266,
+      "y": 64,
+      "notes": "Basically no portal at all"
+    },
+    {
+      "name": "Icy Swamp",
+      "x": -950,
+      "z": 2820,
+      "y": 63,
+      "type": "Biome",
+      "notes": "With a  big mushroom"
+    },
+    {
+      "name": "Flowery Green Village",
+      "x": -1440,
+      "z": 5250,
+      "y": 111
+    },
+    {
+      "name": "The Mysterious tower",
+      "x": -2300,
+      "z": 5431,
+      "y": 101
+    },
+    {
+      "name": "L-Shaped Riverside Village",
+      "x": -2530,
+      "z": 5140,
+      "y": 65
+    },
+    {
+      "name": "Sandy Village",
+      "x": -2580,
+      "z": 4580,
+      "y": 65
+    },
+    {
+      "name": "Far Snowy swamp village",
+      "x": -2499,
+      "z": 4093,
+      "y": 62
+    },
+    {
+      "name": "ice cube village",
+      "x": -2461,
+      "z": 3367,
+      "y": 62
+    },
+    {
+      "name": "Big bright undewrwater ruin",
+      "x": -1673,
+      "z": 1815,
+      "y": 62
+    },
+    {
+      "name": "netherportal ruin",
+      "x": -2239,
+      "z": 700,
+      "y": 72,
+      "notes": "in the middle of nowhere"
+    },
+    {
+      "name": "Acacia land",
+      "x": -1908,
+      "z": -182,
+      "y": 69,
+      "type": "Biome",
+      "notes": "Spotted an amadillo!"
+    },
+    {
+      "name": "Huge Nether Portal Ruin",
+      "x": -523,
+      "z": -567,
+      "y": 66
+    },
+    {
+      "name": "Acacia Village",
+      "x": -500,
+      "z": -846,
+      "y": 78,
+      "notes": "Also AMADILLOOO"
+    },
+    {
+      "name": "Allay Tower",
+      "x": 311,
+      "z": 380,
+      "y": 66,
+      "type": "Tower"
+    },
+    {
+      "name": "Snowy Nether Portal Ruin",
+      "x": 195,
+      "z": 306,
+      "y": 97,
+      "type": "Portal Ruin"
+    },
+    {
+      "name": "Ellie's Camping Site",
+      "x": -1257,
+      "z": 965,
+      "y": 66
+    },
+    {
+      "name": "gold in lava ruin",
+      "x": 86,
+      "z": -491,
+      "y": 75
+    },
+    {
+      "name": "acacia wood village",
+      "x": -868,
+      "z": -836,
+      "y": 72
+    },
+    {
+      "name": "Abanded village tower",
+      "x": -1000,
+      "z": -1140,
+      "y": 85
+    },
+    {
+      "name": "The drowned shipwreck",
+      "x": -1437,
+      "z": 1444,
+      "y": 43
+    },
+    {
+      "name": "Underwater netherruin",
+      "x": -1787,
+      "z": 1626,
+      "y": 62
+    },
+    {
+      "name": "Fairy Treehouse",
+      "x": -1876,
+      "z": 2105,
+      "y": 78
+    },
+    {
+      "name": "water house village",
+      "x": -236,
+      "z": -1380,
+      "y": 128
+    },
+    {
+      "name": "Deep Dark :o",
+      "x": -323,
+      "z": -1366,
+      "y": -44
+    },
+    {
+      "name": "Acacia Ruin",
+      "x": -615,
+      "z": -1260,
+      "y": 101
+    },
+    {
+      "name": "Oak and birch cherry village",
+      "x": -212,
+      "z": -1866,
+      "y": 69
+    },
+    {
+      "name": "Cherry Portal Ruin",
+      "x": -268,
+      "z": -1810,
+      "y": 78
+    },
+    {
+      "name": "Flying School",
+      "x": -95,
+      "z": -22,
+      "y": 163
+    },
+    {
+      "name": "Santa's Grotto",
+      "x": 124,
+      "z": 512,
+      "y": 232
+    },
+    {
+      "name": "eeee",
+      "x": -730,
+      "z": -601,
+      "y": 56
+    },
+    {
+      "name": "Weird Amethyst Room",
+      "x": 745,
+      "z": -634,
+      "y": 26
+    },
+    {
+      "name": "Mangrove Land",
+      "x": -855,
+      "z": -650,
+      "y": 105
+    },
+    {
+      "name": "Tiny Gungle",
+      "x": -910,
+      "z": -321,
+      "y": 93
+    },
+    {
+      "name": "Axolotl",
+      "x": -1114,
+      "z": -100,
+      "y": 77
+    },
+    {
+      "name": "Gerry",
+      "x": -582,
+      "z": 251,
+      "y": 91
+    },
+    {
+      "name": "Penny",
+      "x": -298,
+      "z": 422,
+      "y": 68
+    },
+    {
+      "name": "Vulcano",
+      "x": -1088,
+      "z": 630,
+      "y": 67
+    },
+    {
+      "name": "Iceberg ship",
+      "x": -1225,
+      "z": 1796,
+      "y": 100
+    },
+    {
+      "name": "Moo! Sign",
+      "x": -320,
+      "z": -650,
+      "y": 95
+    },
+    {
+      "name": "Sheepie",
+      "x": -260,
+      "z": -550,
+      "y": 76
+    },
+    {
+      "name": "Sandy Water Tower",
+      "x": 650,
+      "z": -1111,
+      "y": 77
+    },
+    {
+      "name": "lush cave waterfall",
+      "x": 2434,
+      "z": -1815,
+      "y": 66
+    },
+    {
+      "name": "mushroom portal",
+      "x": 2867,
+      "z": -1605,
+      "y": 75
+    },
+    {
+      "name": "emerald road start",
+      "x": 2827,
+      "z": -1502,
+      "y": 62
+    },
+    {
+      "name": "emerald road end",
+      "x": 2648,
+      "z": -1475,
+      "y": 62
+    },
+    {
+      "name": "flowing water tower",
+      "x": 2809,
+      "z": -535,
+      "y": 103
+    },
+    {
+      "name": "one water house village",
+      "x": 2347,
+      "z": -443,
+      "y": 68
+    },
+    {
+      "name": "2 house 1 farm flooded village",
+      "x": 2274,
+      "z": -764,
+      "y": 64
+    },
+    {
+      "name": "Hanging Portal Ruin",
+      "x": 7387,
+      "z": 4777,
+      "y": 99
+    },
+    {
+      "name": "Another Water Portal",
+      "x": 6698,
+      "z": 5131,
+      "y": 71
+    },
+    {
+      "name": "a humungous bamboo jungle",
+      "x": 6406,
+      "z": 5303,
+      "y": 84,
+      "type": "biome"
+    },
+    {
+      "name": "Desert!",
+      "x": 6196,
+      "z": 4978,
+      "y": 80,
+      "type": "Biome"
+    },
+    {
+      "name": "Badlands",
+      "x": 5998,
+      "z": 5033,
+      "y": 77,
+      "type": "Biome",
+      "notes": "Apparently it is a good spot to find gold!"
+    },
+    {
+      "name": "Badlands Mineshafts",
+      "x": 6130,
+      "z": 5300,
+      "y": 74
+    },
+    {
+      "name": "Raichu and Jigglypuff",
+      "x": 6509,
+      "z": 5161,
+      "y": 97
+    }
+  ],
+  "meta": {
+    "source": "minecraft-map-coords-export-2026-02-07.csv",
+    "count": 77,
+    "skipped": 0
+  }
 }
