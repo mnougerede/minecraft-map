@@ -425,13 +425,7 @@ canvas.addEventListener(
 async function main() {
     statusEl.textContent = "Loading data.json…";
 
-    const res = await fetch("data.json");
-    if (!res.ok) throw new Error(`Failed to load data.json: ${res.status}`);
-
-    const data = await res.json();
-    points = (data.points ?? [])
-        .filter((p) => typeof p.x === "number" && typeof p.z === "number")
-        .map((p) => ({ ...p, _type: normalizeType(p.type) }));
+    points = await loadPoints();
 
     const typeSet = new Set(points.map((p) => p._type));
     knownTypes = [...typeSet].sort();
@@ -463,6 +457,51 @@ async function main() {
     statusEl.textContent = `Loaded ${points.length} points.`;
     fitToPoints();
     render();
+}
+
+async function loadFromJson() {
+    const res = await fetch("data.json");
+    if (!res.ok) throw new Error(`Failed to load data.json: ${res.status}`);
+    const data = await res.json();
+    return (data.points ?? [])
+        .filter((p) => typeof p.x === "number" && typeof p.z === "number")
+        .map((p) => ({ ...p, _type: normalizeType(p.type) }));
+}
+
+async function loadFromSupabase(url, key) {
+    if (!window.supabase || !window.supabase.createClient) {
+        throw new Error("Supabase client not available on window.");
+    }
+    const client = window.supabase.createClient(url, key);
+    const { data, error } = await client
+        .from("points")
+        .select("id,name,x,y,z,type,notes,created_at");
+
+    if (error) throw error;
+    return (data ?? [])
+        .filter((p) => typeof p.x === "number" && typeof p.z === "number")
+        .map((p) => ({ ...p, _type: normalizeType(p.type) }));
+}
+
+async function loadPoints() {
+    const url = window.SUPABASE_URL || "";
+    const key = window.SUPABASE_ANON_KEY || "";
+
+    if (url && key) {
+        try {
+            statusEl.textContent = "Loading points from Supabase…";
+            const supaPoints = await loadFromSupabase(url, key);
+            if (supaPoints.length > 0) return supaPoints;
+            console.warn("Supabase returned 0 points; falling back to data.json.");
+        } catch (err) {
+            console.warn("Supabase load failed; falling back to data.json.", err);
+        }
+    } else {
+        console.warn("Supabase config missing; loading data.json instead.");
+    }
+
+    statusEl.textContent = "Loading data.json…";
+    return loadFromJson();
 }
 
 main().catch((err) => {
