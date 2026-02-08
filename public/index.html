@@ -7,6 +7,22 @@
 </head>
 <body>
 <h1>Minecraft World Map</h1>
+<div id="controls">
+    <div class="control-group">
+        <div class="control-title">Type Filters</div>
+        <div class="control-actions">
+            <button id="selectAll" type="button">Select all</button>
+            <button id="selectNone" type="button">Select none</button>
+        </div>
+        <div id="typeFilters"></div>
+    </div>
+    <div class="control-group">
+        <label class="toggle">
+            <input id="invertZ" type="checkbox" />
+            <span>Invert Z axis</span>
+        </label>
+    </div>
+</div>
 <div id="status"></div>
 <canvas id="map" width="900" height="650"></canvas>
 
