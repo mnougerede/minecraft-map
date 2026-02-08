@@ -17,3 +17,5 @@ node_modules/
 # CSVs
 data/csv/
 *.csv
+
+public/config.js
