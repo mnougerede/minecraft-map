@@ -1,9 +1,49 @@
 const canvas = document.getElementById("map");
 const ctx = canvas.getContext("2d");
 const statusEl = document.getElementById("status");
+const typeFiltersEl = document.getElementById("typeFilters");
+const selectAllBtn = document.getElementById("selectAll");
+const selectNoneBtn = document.getElementById("selectNone");
+const invertZEl = document.getElementById("invertZ");
 
 // ---------- Data ----------
 let points = [];
+let enabledTypes = new Set();
+let knownTypes = [];
+
+const STORAGE_TYPES_KEY = "enabledTypes";
+const STORAGE_INVERT_KEY = "invertZ";
+const NONE_TYPE = "(none)";
+
+function normalizeType(raw) {
+    if (typeof raw !== "string") return NONE_TYPE;
+    const t = raw.trim().toLowerCase();
+    return t.length ? t : NONE_TYPE;
+}
+
+function loadEnabledTypes() {
+    try {
+        const raw = localStorage.getItem(STORAGE_TYPES_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return new Set(parsed);
+    } catch {
+        // ignore
+    }
+    return null;
+}
+
+function saveEnabledTypes() {
+    localStorage.setItem(STORAGE_TYPES_KEY, JSON.stringify([...enabledTypes]));
+}
+
+function loadInvertZ() {
+    return localStorage.getItem(STORAGE_INVERT_KEY) === "true";
+}
+
+function saveInvertZ() {
+    localStorage.setItem(STORAGE_INVERT_KEY, String(invertZEl.checked));
+}
 
 // ---------- View transform (world <-> screen) ----------
 const view = {
@@ -15,14 +55,18 @@ const view = {
 };
 
 function worldToScreen(x, z) {
+    const invert = invertZEl.checked;
     const sx = (x - view.cx) * view.scale + canvas.width / 2;
-    const sy = (z - view.cz) * view.scale + canvas.height / 2;
+    const sy = (invert ? view.cz - z : z - view.cz) * view.scale + canvas.height / 2;
     return { sx, sy };
 }
 
 function screenToWorld(sx, sy) {
+    const invert = invertZEl.checked;
     const x = (sx - canvas.width / 2) / view.scale + view.cx;
-    const z = (sy - canvas.height / 2) / view.scale + view.cz;
+    const z = invert
+        ? view.cz - (sy - canvas.height / 2) / view.scale
+        : (sy - canvas.height / 2) / view.scale + view.cz;
     return { x, z };
 }
 
@@ -39,6 +83,7 @@ function render() {
     const showLabels = view.scale >= 0.12; // tweak to taste
 
     for (const p of points) {
+        if (!enabledTypes.has(p._type)) continue;
         const { sx, sy } = worldToScreen(p.x, p.z);
 
         // skip if far off-screen (small perf win)
@@ -57,6 +102,57 @@ function render() {
     ctx.fillStyle = "white";
     ctx.font = "12px sans-serif";
     ctx.fillText(`scale: ${view.scale.toFixed(3)} px/block`, 10, canvas.height - 10);
+}
+
+function buildTypeControls() {
+    typeFiltersEl.innerHTML = "";
+
+    const stored = loadEnabledTypes();
+    enabledTypes = new Set();
+
+    for (const type of knownTypes) {
+        const enabled = stored === null ? true : stored.has(type);
+        if (enabled) enabledTypes.add(type);
+
+        const label = document.createElement("label");
+        label.className = "toggle";
+
+        const input = document.createElement("input");
+        input.type = "checkbox";
+        input.checked = enabled;
+        input.dataset.type = type;
+
+        const span = document.createElement("span");
+        span.textContent = type;
+
+        label.appendChild(input);
+        label.appendChild(span);
+        typeFiltersEl.appendChild(label);
+    }
+
+    typeFiltersEl.addEventListener("change", (e) => {
+        const target = e.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        const type = target.dataset.type;
+        if (!type) return;
+        if (target.checked) enabledTypes.add(type);
+        else enabledTypes.delete(type);
+        saveEnabledTypes();
+        render();
+    });
+}
+
+function setAllTypes(enabled) {
+    const inputs = typeFiltersEl.querySelectorAll("input[type='checkbox']");
+    inputs.forEach((input) => {
+        input.checked = enabled;
+        const type = input.dataset.type;
+        if (!type) return;
+        if (enabled) enabledTypes.add(type);
+        else enabledTypes.delete(type);
+    });
+    saveEnabledTypes();
+    render();
 }
 
 // ---------- Fit initial view ----------
@@ -114,7 +210,7 @@ canvas.addEventListener("mousemove", (e) => {
 
     // dragging the view right should move the "camera" left in world coords
     view.cx -= dx / view.scale;
-    view.cz -= dy / view.scale;
+    view.cz += (invertZEl.checked ? dy : -dy) / view.scale;
 
     render();
 });
@@ -155,7 +251,21 @@ async function main() {
     if (!res.ok) throw new Error(`Failed to load data.json: ${res.status}`);
 
     const data = await res.json();
-    points = (data.points ?? []).filter((p) => typeof p.x === "number" && typeof p.z === "number");
+    points = (data.points ?? [])
+        .filter((p) => typeof p.x === "number" && typeof p.z === "number")
+        .map((p) => ({ ...p, _type: normalizeType(p.type) }));
+
+    const typeSet = new Set(points.map((p) => p._type));
+    knownTypes = [...typeSet].sort();
+    buildTypeControls();
+
+    invertZEl.checked = loadInvertZ();
+    invertZEl.addEventListener("change", () => {
+        saveInvertZ();
+        render();
+    });
+    selectAllBtn.addEventListener("click", () => setAllTypes(true));
+    selectNoneBtn.addEventListener("click", () => setAllTypes(false));
 
     statusEl.textContent = `Loaded ${points.length} points.`;
     fitToPoints();
