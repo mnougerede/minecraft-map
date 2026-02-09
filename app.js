@@ -96,7 +96,8 @@ function getVisibleWorldBounds() {
     return { minX, maxX, minZ, maxZ };
 }
 
-function niceStep(value) {
+function getNiceSpacing(scale, targetPx = 90) {
+    const value = targetPx / scale;
     if (value <= 0) return 1;
     const exp = Math.floor(Math.log10(value));
     const base = Math.pow(10, exp);
@@ -111,8 +112,7 @@ function niceStep(value) {
 
 function drawGrid() {
     const bounds = getVisibleWorldBounds();
-    const targetPx = 90;
-    const step = niceStep(targetPx / view.scale);
+    const step = getNiceSpacing(view.scale, 90);
     const startX = Math.floor(bounds.minX / step) * step;
     const endX = Math.ceil(bounds.maxX / step) * step;
     const startZ = Math.floor(bounds.minZ / step) * step;
@@ -136,6 +136,72 @@ function drawGrid() {
         ctx.lineTo(canvas.width, sy);
         ctx.stroke();
     }
+    ctx.restore();
+}
+
+function formatAxisValue(value, step) {
+    const absStep = Math.abs(step);
+    if (absStep >= 1) return String(Math.round(value));
+    const decimals = Math.min(6, Math.max(0, -Math.floor(Math.log10(absStep))));
+    return value.toFixed(decimals);
+}
+
+function drawAxisNumbers() {
+    const bounds = getVisibleWorldBounds();
+    const gridStep = getNiceSpacing(view.scale, 90);
+    const minLabelPx = 50;
+    const gridPx = gridStep * view.scale;
+    const multiplier = gridPx < minLabelPx ? Math.ceil(minLabelPx / gridPx) : 1;
+    const labelStep = gridStep * multiplier;
+
+    ctx.save();
+    ctx.fillStyle = "#aaa";
+    ctx.font = "11px sans-serif";
+    ctx.textBaseline = "middle";
+
+    const pad = 2;
+    const bgAlpha = 0.45;
+
+    const drawLabel = (text, x, y, align) => {
+        ctx.textAlign = align;
+        const metrics = ctx.measureText(text);
+        const w = metrics.width;
+        const h = 10;
+        let rx = x;
+        if (align === "center") rx = x - w / 2;
+        if (align === "right") rx = x - w;
+        ctx.fillStyle = `rgba(0,0,0,${bgAlpha})`;
+        ctx.fillRect(rx - pad, y - h / 2 - pad, w + pad * 2, h + pad * 2);
+        ctx.fillStyle = "#aaa";
+        ctx.fillText(text, x, y);
+    };
+
+    if (bounds.minZ <= 0 && bounds.maxZ >= 0) {
+        const startX = Math.floor(bounds.minX / labelStep) * labelStep;
+        const endX = Math.ceil(bounds.maxX / labelStep) * labelStep;
+        for (let x = startX; x <= endX; x += labelStep) {
+            if (x === 0) continue;
+            const { sx, sy } = worldToScreen(x, 0);
+            if (sx < 0 || sx > canvas.width || sy < 0 || sy > canvas.height) continue;
+            const text = formatAxisValue(x, labelStep);
+            const offsetY = 8;
+            drawLabel(text, sx, sy + offsetY, "center");
+        }
+    }
+
+    if (bounds.minX <= 0 && bounds.maxX >= 0) {
+        const startZ = Math.floor(bounds.minZ / labelStep) * labelStep;
+        const endZ = Math.ceil(bounds.maxZ / labelStep) * labelStep;
+        for (let z = startZ; z <= endZ; z += labelStep) {
+            if (z === 0) continue;
+            const { sx, sy } = worldToScreen(0, z);
+            if (sx < 0 || sx > canvas.width || sy < 0 || sy > canvas.height) continue;
+            const text = formatAxisValue(z, labelStep);
+            const offsetX = 8;
+            drawLabel(text, sx + offsetX, sy, "left");
+        }
+    }
+
     ctx.restore();
 }
 
@@ -165,7 +231,7 @@ function drawAxes() {
 function drawScaleBar() {
     const pad = 12;
     const targetPx = 140;
-    const worldLen = niceStep(targetPx / view.scale);
+    const worldLen = getNiceSpacing(view.scale, targetPx);
     const pxLen = worldLen * view.scale;
     const x = pad;
     const y = canvas.height - pad - 14;
@@ -223,7 +289,10 @@ function render() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     if (showGridEl.checked) drawGrid();
-    if (showAxesEl.checked) drawAxes();
+    if (showAxesEl.checked) {
+        drawAxes();
+        drawAxisNumbers();
+    }
 
     // points
     ctx.fillStyle = "red";
