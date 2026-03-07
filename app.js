@@ -533,6 +533,7 @@ function setEditMode(enabled) {
         canvas.style.cursor = "default";
     }
     render();
+    buildPlacesList();
 }
 
 // ---------- Point form modal ----------
@@ -595,6 +596,7 @@ function closePointForm() {
     editingPoint = null;
     selectedPoint = null;
     render();
+    buildPlacesList();
 }
 
 function showFormError(msg) {
@@ -659,6 +661,60 @@ function refreshTypesAfterEdit() {
         buildTypeControls();
     }
     render();
+    buildPlacesList();
+}
+
+function centerOnPoint(point) {
+    view.cx = point.x;
+    view.cz = point.z;
+    render();
+}
+
+function buildPlacesList() {
+    const listEl = document.getElementById("placesList");
+    const searchEl = document.getElementById("placesSearch");
+    if (!listEl) return;
+
+    const query = (searchEl ? searchEl.value : "").trim().toLowerCase();
+    const sorted = [...points]
+        .filter(p => !query || (p.name ?? "").toLowerCase().includes(query))
+        .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+
+    listEl.innerHTML = "";
+    for (const p of sorted) {
+        const li = document.createElement("li");
+        if (selectedPoint === p) li.classList.add("selected");
+
+        const nameSpan = document.createElement("span");
+        nameSpan.className = "places-name";
+        nameSpan.textContent = p.name ?? "(unnamed)";
+        nameSpan.title = p.name ?? "";
+
+        const typeSpan = document.createElement("span");
+        typeSpan.className = "places-type";
+        if (p._type && p._type !== "(none)") typeSpan.textContent = p._type;
+
+        const coordSpan = document.createElement("span");
+        coordSpan.className = "places-coords";
+        coordSpan.textContent = `${p.x}, ${p.z}` + (p.y != null ? `, ${p.y}` : "");
+
+        const editBtn = document.createElement("button");
+        editBtn.className = "places-edit-btn";
+        editBtn.type = "button";
+        editBtn.textContent = "Edit";
+        editBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            openPointForm(p);
+        });
+
+        li.append(nameSpan, typeSpan, coordSpan, editBtn);
+        li.addEventListener("click", () => {
+            selectedPoint = p;
+            centerOnPoint(p);
+            buildPlacesList();
+        });
+        listEl.appendChild(li);
+    }
 }
 
 document.getElementById("pointForm").addEventListener("submit", handleFormSave);
@@ -692,6 +748,7 @@ canvas.addEventListener("mouseup", (e) => {
         if (hitPoint) {
             selectedPoint = hitPoint;
             render();
+            buildPlacesList();
             openPointForm(hitPoint);
         } else {
             selectedPoint = null;
@@ -772,6 +829,7 @@ async function main() {
     const typeSet = new Set(points.map((p) => p._type));
     knownTypes = [...typeSet].sort();
     buildTypeControls();
+    buildPlacesList();
 
     invertZEl.checked = loadInvertZ();
     invertZEl.addEventListener("change", () => {
@@ -818,6 +876,8 @@ async function main() {
             alert("Import failed: " + err.message);
         }
     });
+
+    document.getElementById("placesSearch").addEventListener("input", buildPlacesList);
 
     statusEl.textContent = `Loaded ${points.length} points.`;
     fitToPoints();
