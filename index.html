@@ -37,9 +37,36 @@
             <span>Invert Z axis</span>
         </label>
     </div>
+    <div class="control-group">
+        <div class="control-title">Editing</div>
+        <button id="editModeBtn" type="button">Edit Mode</button>
+    </div>
 </div>
 <div id="status"></div>
 <canvas id="map" width="900" height="650"></canvas>
+
+<div id="pointFormOverlay" class="modal-overlay hidden">
+    <div class="modal">
+        <h2 id="pointFormTitle">Add Point</h2>
+        <form id="pointForm" autocomplete="off">
+            <label>Name<input id="pf-name" type="text" required /></label>
+            <label>Type
+                <input id="pf-type" type="text" list="pf-type-list" />
+                <datalist id="pf-type-list"></datalist>
+            </label>
+            <label>X<input id="pf-x" type="number" /></label>
+            <label>Z<input id="pf-z" type="number" /></label>
+            <label>Y<input id="pf-y" type="number" /></label>
+            <label>Notes<textarea id="pf-notes" rows="3"></textarea></label>
+            <div id="pf-error" class="form-error hidden"></div>
+            <div class="form-actions">
+                <button type="submit" id="pf-save">Save</button>
+                <button type="button" id="pf-delete" class="btn-danger hidden">Delete</button>
+                <button type="button" id="pf-cancel">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
