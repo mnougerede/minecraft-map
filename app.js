@@ -300,8 +300,10 @@ function render() {
     }
 
     // points
-    ctx.fillStyle = "red";
-    ctx.font = "12px sans-serif";
+    ctx.save();
+    ctx.font = "14px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
 
     for (const p of points) {
         if (!enabledTypes.has(p._type)) continue;
@@ -310,10 +312,9 @@ function render() {
         // skip if far off-screen (small perf win)
         if (sx < -50 || sx > canvas.width + 50 || sy < -50 || sy > canvas.height + 50) continue;
 
-        ctx.beginPath();
-        ctx.arc(sx, sy, 4, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fillText("🍌", sx, sy);
     }
+    ctx.restore();
 
     // labels
     ctx.fillStyle = "white";
