@@ -491,6 +491,21 @@ async function deletePoint(id) {
     if (error) throw error;
 }
 
+async function upsertPoints(rows) {
+    const client = getSupabaseClient();
+    if (!client) throw new Error("Supabase is not configured.");
+    const payload = rows.map(p => ({
+        name: p.name,
+        x: p.x ?? null,
+        z: p.z ?? null,
+        y: p.y ?? null,
+        type: p.type ?? null,
+        notes: p.notes ?? null,
+    }));
+    const { error } = await client.from("points").upsert(payload, { onConflict: "name" });
+    if (error) throw error;
+}
+
 function getPointAtScreen(sx, sy, radius = 8) {
     let best = null;
     let bestDist = radius;
@@ -782,6 +797,27 @@ async function main() {
     selectNoneBtn.addEventListener("click", () => setAllTypes(false));
 
     document.getElementById("editModeBtn").addEventListener("click", () => setEditMode(!editMode));
+
+    document.getElementById("addPointBtn").addEventListener("click", () => openPointForm(null));
+
+    const importJsonBtn = document.getElementById("importJsonBtn");
+    const importFileInput = document.getElementById("importFileInput");
+    importJsonBtn.addEventListener("click", () => importFileInput.click());
+    importFileInput.addEventListener("change", async () => {
+        const file = importFileInput.files[0];
+        if (!file) return;
+        importFileInput.value = "";
+        let parsed;
+        try { parsed = JSON.parse(await file.text()); } catch { alert("Invalid JSON file."); return; }
+        if (!Array.isArray(parsed)) { alert("Expected a JSON array of points."); return; }
+        try {
+            await upsertPoints(parsed);
+            await loadPoints();
+            alert(`Imported ${parsed.length} point(s) successfully.`);
+        } catch (err) {
+            alert("Import failed: " + err.message);
+        }
+    });
 
     statusEl.textContent = `Loaded ${points.length} points.`;
     fitToPoints();
