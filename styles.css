@@ -41,3 +41,100 @@ body {
     gap: 8px;
     cursor: pointer;
 }
+
+/* Edit mode button */
+#editModeBtn.active {
+    background: #e67e00;
+    color: white;
+    border-color: #b35f00;
+}
+
+/* Canvas edit-mode border is applied via JS (canvas.style.outline) */
+
+/* Modal overlay */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.modal-overlay.hidden {
+    display: none;
+}
+
+.modal {
+    background: #fff;
+    border-radius: 8px;
+    padding: 24px 28px;
+    min-width: 320px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+}
+
+.modal h2 {
+    margin: 0 0 16px;
+    font-size: 1.1rem;
+}
+
+.modal form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.modal label {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.85rem;
+    font-weight: bold;
+    gap: 3px;
+}
+
+.modal label input,
+.modal label textarea {
+    font-size: 0.95rem;
+    padding: 5px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-weight: normal;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.modal label textarea {
+    resize: vertical;
+}
+
+.form-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.btn-danger {
+    background: #c0392b;
+    color: white;
+    border-color: #922b21;
+}
+
+.btn-danger:hover {
+    background: #a93226;
+}
+
+.form-error {
+    color: #c0392b;
+    font-size: 0.85rem;
+    background: #fdecea;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    padding: 6px 10px;
+}
+
+.form-error.hidden {
+    display: none;
+}

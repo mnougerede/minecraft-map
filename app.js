@@ -14,6 +14,11 @@ let points = [];
 let enabledTypes = new Set();
 let knownTypes = [];
 
+// ---------- Edit mode state ----------
+let editMode = false;
+let selectedPoint = null;
+let supabaseClient = null;
+
 const STORAGE_TYPES_KEY = "enabledTypes";
 const STORAGE_INVERT_KEY = "invertZ";
 const STORAGE_SHOW_GRID_KEY = "showGrid";
@@ -349,6 +354,27 @@ function render() {
     ctx.fillStyle = "white";
     ctx.font = "12px sans-serif";
     ctx.fillText(`scale: ${view.scale.toFixed(3)} px/block`, 10, canvas.height - 10);
+
+    // selected point highlight
+    if (selectedPoint) {
+        const { sx, sy } = worldToScreen(selectedPoint.x, selectedPoint.z);
+        ctx.save();
+        ctx.strokeStyle = "orange";
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(sx, sy, 9, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    // edit mode canvas border
+    if (editMode) {
+        ctx.save();
+        ctx.strokeStyle = "orange";
+        ctx.lineWidth = 4;
+        ctx.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
+        ctx.restore();
+    }
 }
 
 function buildTypeControls() {
@@ -429,28 +455,260 @@ function fitToPoints() {
     view.scale = Math.max(0.02, Math.min(view.scale, 5));
 }
 
+// ---------- Supabase client factory ----------
+function getSupabaseClient() {
+    if (supabaseClient) return supabaseClient;
+    const url = window.SUPABASE_URL || "";
+    const key = window.SUPABASE_ANON_KEY || "";
+    if (!url || !key) return null;
+    if (!window.supabase || !window.supabase.createClient) return null;
+    supabaseClient = window.supabase.createClient(url, key);
+    return supabaseClient;
+}
+
+async function saveNewPoint(data) {
+    const client = getSupabaseClient();
+    if (!client) throw new Error("Supabase is not configured. Cannot save points.");
+    const { data: rows, error } = await client
+        .from("points")
+        .insert([data])
+        .select("id,name,x,y,z,type,notes,created_at");
+    if (error) throw error;
+    return rows[0];
+}
+
+async function updatePoint(id, data) {
+    const client = getSupabaseClient();
+    if (!client) throw new Error("Supabase is not configured. Cannot save points.");
+    const { error } = await client.from("points").update(data).eq("id", id);
+    if (error) throw error;
+}
+
+async function deletePoint(id) {
+    const client = getSupabaseClient();
+    if (!client) throw new Error("Supabase is not configured. Cannot delete points.");
+    const { error } = await client.from("points").delete().eq("id", id);
+    if (error) throw error;
+}
+
+function getPointAtScreen(sx, sy, radius = 8) {
+    let best = null;
+    let bestDist = radius;
+    for (const p of points) {
+        if (!enabledTypes.has(p._type)) continue;
+        const s = worldToScreen(p.x, p.z);
+        const d = Math.hypot(s.sx - sx, s.sy - sy);
+        if (d <= bestDist) {
+            bestDist = d;
+            best = p;
+        }
+    }
+    return best;
+}
+
+function setEditMode(enabled) {
+    editMode = enabled;
+    selectedPoint = null;
+    const btn = document.getElementById("editModeBtn");
+    if (enabled) {
+        btn.classList.add("active");
+        canvas.style.cursor = "crosshair";
+    } else {
+        btn.classList.remove("active");
+        canvas.style.cursor = "default";
+    }
+    render();
+}
+
+// ---------- Point form modal ----------
+const pointFormOverlay = document.getElementById("pointFormOverlay");
+const pointFormTitle = document.getElementById("pointFormTitle");
+const pfName = document.getElementById("pf-name");
+const pfType = document.getElementById("pf-type");
+const pfTypeList = document.getElementById("pf-type-list");
+const pfX = document.getElementById("pf-x");
+const pfZ = document.getElementById("pf-z");
+const pfY = document.getElementById("pf-y");
+const pfNotes = document.getElementById("pf-notes");
+const pfError = document.getElementById("pf-error");
+const pfSave = document.getElementById("pf-save");
+const pfDelete = document.getElementById("pf-delete");
+const pfCancel = document.getElementById("pf-cancel");
+
+let editingPoint = null; // null = add mode, object = edit mode
+
+function openPointForm(point, prefillX, prefillZ) {
+    editingPoint = point ?? null;
+    pfError.textContent = "";
+    pfError.classList.add("hidden");
+
+    // Populate type datalist
+    pfTypeList.innerHTML = "";
+    for (const t of knownTypes) {
+        if (t === "(none)") continue;
+        const opt = document.createElement("option");
+        opt.value = t;
+        pfTypeList.appendChild(opt);
+    }
+
+    if (point) {
+        pointFormTitle.textContent = "Edit Point";
+        pfName.value = point.name ?? "";
+        pfType.value = point.type ?? "";
+        pfX.value = point.x ?? "";
+        pfZ.value = point.z ?? "";
+        pfY.value = point.y ?? "";
+        pfNotes.value = point.notes ?? "";
+        pfDelete.classList.remove("hidden");
+    } else {
+        pointFormTitle.textContent = "Add Point";
+        pfName.value = "";
+        pfType.value = "";
+        pfX.value = prefillX ?? "";
+        pfZ.value = prefillZ ?? "";
+        pfY.value = "";
+        pfNotes.value = "";
+        pfDelete.classList.add("hidden");
+    }
+
+    pointFormOverlay.classList.remove("hidden");
+    pfName.focus();
+}
+
+function closePointForm() {
+    pointFormOverlay.classList.add("hidden");
+    editingPoint = null;
+    selectedPoint = null;
+    render();
+}
+
+function showFormError(msg) {
+    pfError.textContent = msg;
+    pfError.classList.remove("hidden");
+}
+
+async function handleFormSave(e) {
+    e.preventDefault();
+    pfError.classList.add("hidden");
+    pfSave.disabled = true;
+
+    const rawType = pfType.value.trim();
+    const payload = {
+        name: pfName.value.trim(),
+        type: rawType || null,
+        x: pfX.value !== "" ? Number(pfX.value) : null,
+        z: pfZ.value !== "" ? Number(pfZ.value) : null,
+        y: pfY.value !== "" ? Number(pfY.value) : null,
+        notes: pfNotes.value.trim() || null,
+    };
+
+    try {
+        if (editingPoint) {
+            await updatePoint(editingPoint.id, payload);
+            Object.assign(editingPoint, payload, { _type: normalizeType(payload.type) });
+        } else {
+            const saved = await saveNewPoint(payload);
+            const newPt = { ...saved, _type: normalizeType(saved.type) };
+            points.push(newPt);
+        }
+        refreshTypesAfterEdit();
+        closePointForm();
+    } catch (err) {
+        showFormError(err.message ?? String(err));
+    } finally {
+        pfSave.disabled = false;
+    }
+}
+
+async function handleFormDelete() {
+    if (!editingPoint) return;
+    if (!window.confirm(`Delete "${editingPoint.name ?? "this point"}"?`)) return;
+    pfDelete.disabled = true;
+    try {
+        await deletePoint(editingPoint.id);
+        const idx = points.indexOf(editingPoint);
+        if (idx !== -1) points.splice(idx, 1);
+        closePointForm();
+    } catch (err) {
+        showFormError(err.message ?? String(err));
+        pfDelete.disabled = false;
+    }
+}
+
+function refreshTypesAfterEdit() {
+    const typeSet = new Set(points.map((p) => p._type));
+    const newTypes = [...typeSet].sort();
+    const hadNewType = newTypes.some((t) => !knownTypes.includes(t));
+    knownTypes = newTypes;
+    if (hadNewType) {
+        buildTypeControls();
+    }
+    render();
+}
+
+document.getElementById("pointForm").addEventListener("submit", handleFormSave);
+pfDelete.addEventListener("click", handleFormDelete);
+pfCancel.addEventListener("click", closePointForm);
+pointFormOverlay.addEventListener("click", (e) => {
+    if (e.target === pointFormOverlay) closePointForm();
+});
+
 // ---------- Interaction: pan ----------
 let isDragging = false;
+let dragMoved = false;
 let last = { x: 0, y: 0 };
 
 canvas.addEventListener("mousedown", (e) => {
+    if (editMode) {
+        last = { x: e.offsetX, y: e.offsetY };
+        dragMoved = false;
+        isDragging = true;
+        return;
+    }
     isDragging = true;
+    dragMoved = false;
     last = { x: e.offsetX, y: e.offsetY };
     canvas.style.cursor = "grabbing";
 });
 
-window.addEventListener("mouseup", () => {
+canvas.addEventListener("mouseup", (e) => {
+    if (editMode && isDragging && !dragMoved) {
+        const hitPoint = getPointAtScreen(e.offsetX, e.offsetY);
+        if (hitPoint) {
+            selectedPoint = hitPoint;
+            render();
+            openPointForm(hitPoint);
+        } else {
+            selectedPoint = null;
+            const w = screenToWorld(e.offsetX, e.offsetY);
+            openPointForm(null, Math.round(w.x), Math.round(w.z));
+        }
+    }
     isDragging = false;
-    canvas.style.cursor = "default";
+    dragMoved = false;
+    if (!editMode) canvas.style.cursor = "default";
+});
+
+window.addEventListener("mouseup", () => {
+    if (isDragging) {
+        isDragging = false;
+        dragMoved = false;
+        if (!editMode) canvas.style.cursor = "default";
+    }
 });
 
 canvas.addEventListener("mousemove", (e) => {
-    // optional: show coords under cursor
+    // show coords under cursor
     const w = screenToWorld(e.offsetX, e.offsetY);
     statusEl.textContent = `Loaded ${points.length} points. Cursor: x=${Math.round(w.x)}, z=${Math.round(w.z)}`;
 
     if (!isDragging) return;
+    if (editMode) {
+        dragMoved = true;
+        return;
+    }
 
+    dragMoved = true;
     const dx = e.offsetX - last.x;
     const dy = e.offsetY - last.y;
     last = { x: e.offsetX, y: e.offsetY };
@@ -522,6 +780,8 @@ async function main() {
     });
     selectAllBtn.addEventListener("click", () => setAllTypes(true));
     selectNoneBtn.addEventListener("click", () => setAllTypes(false));
+
+    document.getElementById("editModeBtn").addEventListener("click", () => setEditMode(!editMode));
 
     statusEl.textContent = `Loaded ${points.length} points.`;
     fitToPoints();
