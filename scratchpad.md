@@ -1,0 +1,2 @@
+should be able to select a point from the map as well
+
