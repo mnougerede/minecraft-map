@@ -138,3 +138,66 @@ body {
 .form-error.hidden {
     display: none;
 }
+
+/* Places List */
+#placesSearch {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 6px;
+    padding: 4px 7px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+#placesList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#placesList li {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    border-left: 3px solid transparent;
+}
+
+#placesList li:hover { background: #ececec; }
+
+#placesList li.selected {
+    border-left-color: orange;
+    background: #fff4e0;
+}
+
+.places-name {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.places-type {
+    font-size: 0.75rem;
+    color: #888;
+    white-space: nowrap;
+}
+
+.places-coords {
+    font-size: 0.72rem;
+    color: #aaa;
+    white-space: nowrap;
+}
+
+.places-edit-btn {
+    font-size: 0.72rem;
+    padding: 1px 5px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
