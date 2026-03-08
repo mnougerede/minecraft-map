@@ -18,6 +18,7 @@ let knownTypes = [];
 let editMode = false;
 let selectedPoint = null;
 let supabaseClient = null;
+let currentUser = null;
 
 const STORAGE_TYPES_KEY = "enabledTypes";
 const STORAGE_INVERT_KEY = "invertZ";
@@ -537,6 +538,76 @@ function setEditMode(enabled) {
     buildPlacesList();
 }
 
+// ---------- Auth ----------
+function updateAuthUI(session) {
+    currentUser = session?.user ?? null;
+    const editingGroup = document.getElementById("editingGroup");
+    const authStatus = document.getElementById("authStatus");
+    const loginBtn = document.getElementById("loginBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    if (currentUser) {
+        editingGroup.classList.remove("hidden");
+        authStatus.textContent = currentUser.email;
+        loginBtn.classList.add("hidden");
+        logoutBtn.classList.remove("hidden");
+    } else {
+        editingGroup.classList.add("hidden");
+        authStatus.textContent = "";
+        loginBtn.classList.remove("hidden");
+        logoutBtn.classList.add("hidden");
+        if (editMode) setEditMode(false);
+    }
+    buildPlacesList();
+}
+
+function openLoginModal() {
+    document.getElementById("loginOverlay").classList.remove("hidden");
+    document.getElementById("login-error").classList.add("hidden");
+    document.getElementById("login-sent").classList.add("hidden");
+    document.getElementById("login-submit").disabled = false;
+    document.getElementById("login-email").value = "";
+    document.getElementById("login-email").focus();
+}
+
+function closeLoginModal() {
+    document.getElementById("loginOverlay").classList.add("hidden");
+}
+
+async function handleLoginSubmit(e) {
+    e.preventDefault();
+    const email = document.getElementById("login-email").value.trim();
+    const errEl = document.getElementById("login-error");
+    const sentEl = document.getElementById("login-sent");
+    const submitBtn = document.getElementById("login-submit");
+
+    errEl.classList.add("hidden");
+    sentEl.classList.add("hidden");
+    submitBtn.disabled = true;
+
+    const client = getSupabaseClient();
+    if (!client) {
+        errEl.textContent = "Supabase is not configured.";
+        errEl.classList.remove("hidden");
+        submitBtn.disabled = false;
+        return;
+    }
+
+    const { error } = await client.auth.signInWithOtp({ email });
+    if (error) {
+        errEl.textContent = error.message;
+        errEl.classList.remove("hidden");
+        submitBtn.disabled = false;
+    } else {
+        sentEl.classList.remove("hidden");
+    }
+}
+
+async function handleLogout() {
+    const client = getSupabaseClient();
+    if (client) await client.auth.signOut();
+}
+
 // ---------- Point form modal ----------
 const pointFormOverlay = document.getElementById("pointFormOverlay");
 const pointFormTitle = document.getElementById("pointFormTitle");
@@ -699,16 +770,19 @@ function buildPlacesList() {
         coordSpan.className = "places-coords";
         coordSpan.textContent = `${p.x}, ${p.z}` + (p.y != null ? `, ${p.y}` : "");
 
-        const editBtn = document.createElement("button");
-        editBtn.className = "places-edit-btn";
-        editBtn.type = "button";
-        editBtn.textContent = "Edit";
-        editBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            openPointForm(p);
-        });
-
-        li.append(nameSpan, typeSpan, coordSpan, editBtn);
+        if (currentUser) {
+            const editBtn = document.createElement("button");
+            editBtn.className = "places-edit-btn";
+            editBtn.type = "button";
+            editBtn.textContent = "Edit";
+            editBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                openPointForm(p);
+            });
+            li.append(nameSpan, typeSpan, coordSpan, editBtn);
+        } else {
+            li.append(nameSpan, typeSpan, coordSpan);
+        }
         li.addEventListener("click", () => {
             selectedPoint = p;
             centerOnPoint(p);
@@ -823,6 +897,24 @@ canvas.addEventListener(
 
 // ---------- Load ----------
 async function main() {
+    // Auth setup — must happen before UI is built so edit controls start hidden
+    const client = getSupabaseClient();
+    if (client) {
+        client.auth.onAuthStateChange((_event, session) => {
+            updateAuthUI(session);
+        });
+        const { data: { session } } = await client.auth.getSession();
+        updateAuthUI(session);
+    }
+
+    document.getElementById("loginBtn").addEventListener("click", openLoginModal);
+    document.getElementById("logoutBtn").addEventListener("click", handleLogout);
+    document.getElementById("loginForm").addEventListener("submit", handleLoginSubmit);
+    document.getElementById("login-cancel").addEventListener("click", closeLoginModal);
+    document.getElementById("loginOverlay").addEventListener("click", (e) => {
+        if (e.target === document.getElementById("loginOverlay")) closeLoginModal();
+    });
+
     statusEl.textContent = "Loading data.json…";
 
     points = await loadPoints();
@@ -894,11 +986,9 @@ async function loadFromJson() {
         .map((p) => ({ ...p, _type: normalizeType(p.type) }));
 }
 
-async function loadFromSupabase(url, key) {
-    if (!window.supabase || !window.supabase.createClient) {
-        throw new Error("Supabase client not available on window.");
-    }
-    const client = window.supabase.createClient(url, key);
+async function loadFromSupabase() {
+    const client = getSupabaseClient();
+    if (!client) throw new Error("Supabase client not available.");
     const { data, error } = await client
         .from("points")
         .select("id,name,x,y,z,type,notes,created_at");
@@ -916,7 +1006,7 @@ async function loadPoints() {
     if (url && key) {
         try {
             statusEl.textContent = "Loading points from Supabase…";
-            const supaPoints = await loadFromSupabase(url, key);
+            const supaPoints = await loadFromSupabase();
             if (supaPoints.length > 0) return supaPoints;
             console.warn("Supabase returned 0 points; falling back to data.json.");
         } catch (err) {
