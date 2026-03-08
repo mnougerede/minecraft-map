@@ -754,7 +754,11 @@ function buildPlacesList() {
     listEl.innerHTML = "";
     for (const p of sorted) {
         const li = document.createElement("li");
-        if (selectedPoint === p) li.classList.add("selected");
+        if (selectedPoint === p) {
+            li.classList.add("selected");
+            // Scroll into view after list is rendered
+            requestAnimationFrame(() => li.scrollIntoView({ block: "nearest" }));
+        }
 
         const nameSpan = document.createElement("span");
         nameSpan.className = "places-name";
@@ -828,6 +832,17 @@ canvas.addEventListener("mouseup", (e) => {
             selectedPoint = null;
             const w = screenToWorld(e.offsetX, e.offsetY);
             openPointForm(null, Math.round(w.x), Math.round(w.z));
+        }
+    } else if (!editMode && isDragging && !dragMoved) {
+        const hitPoint = getPointAtScreen(e.offsetX, e.offsetY);
+        if (hitPoint) {
+            selectedPoint = hitPoint;
+            render();
+            buildPlacesList();
+        } else {
+            selectedPoint = null;
+            render();
+            buildPlacesList();
         }
     }
     isDragging = false;
