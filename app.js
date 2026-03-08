@@ -894,6 +894,99 @@ canvas.addEventListener(
     { passive: false }
 );
 
+// ---------- Interaction: touch (pan + pinch zoom) ----------
+let touchLast = { x: 0, y: 0 };
+let touchPinchDist = null; // null when not pinching
+
+function getTouchMidpoint(t1, t2, rect) {
+    return {
+        x: ((t1.clientX + t2.clientX) / 2) - rect.left,
+        y: ((t1.clientY + t2.clientY) / 2) - rect.top,
+    };
+}
+
+function getTouchDist(t1, t2) {
+    const dx = t1.clientX - t2.clientX;
+    const dy = t1.clientY - t2.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+canvas.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    if (e.touches.length === 1) {
+        const rect = canvas.getBoundingClientRect();
+        touchLast = {
+            x: e.touches[0].clientX - rect.left,
+            y: e.touches[0].clientY - rect.top,
+        };
+        touchPinchDist = null;
+        isDragging = true;
+        dragMoved = false;
+    } else if (e.touches.length === 2) {
+        touchPinchDist = getTouchDist(e.touches[0], e.touches[1]);
+        const rect = canvas.getBoundingClientRect();
+        const mid = getTouchMidpoint(e.touches[0], e.touches[1], rect);
+        touchLast = mid;
+        isDragging = false;
+    }
+}, { passive: false });
+
+canvas.addEventListener("touchmove", (e) => {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+
+    if (e.touches.length === 1 && touchPinchDist === null) {
+        // Single-finger pan
+        const x = e.touches[0].clientX - rect.left;
+        const y = e.touches[0].clientY - rect.top;
+        const dx = x - touchLast.x;
+        const dy = y - touchLast.y;
+        touchLast = { x, y };
+        dragMoved = true;
+
+        view.cx -= dx / view.scale;
+        view.cz += (invertZEl.checked ? dy : -dy) / view.scale;
+        render();
+    } else if (e.touches.length === 2) {
+        // Two-finger pinch zoom
+        const newDist = getTouchDist(e.touches[0], e.touches[1]);
+        const mid = getTouchMidpoint(e.touches[0], e.touches[1], rect);
+
+        if (touchPinchDist !== null) {
+            // Pan from midpoint movement
+            const dx = mid.x - touchLast.x;
+            const dy = mid.y - touchLast.y;
+            view.cx -= dx / view.scale;
+            view.cz += (invertZEl.checked ? dy : -dy) / view.scale;
+
+            // Zoom towards/away from midpoint
+            const factor = newDist / touchPinchDist;
+            const before = screenToWorld(mid.x, mid.y);
+            const newScale = view.scale * factor;
+            view.scale = Math.max(0.01, Math.min(newScale, 20));
+            const after = screenToWorld(mid.x, mid.y);
+            view.cx += before.x - after.x;
+            view.cz += before.z - after.z;
+
+            render();
+        }
+
+        touchPinchDist = newDist;
+        touchLast = mid;
+    }
+}, { passive: false });
+
+canvas.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    if (e.touches.length < 2) {
+        touchPinchDist = null;
+    }
+    if (e.touches.length === 0) {
+        isDragging = false;
+        dragMoved = false;
+    }
+}, { passive: false });
+
 // ---------- Load ----------
 async function main() {
     // Auth setup — must happen before UI is built so edit controls start hidden
