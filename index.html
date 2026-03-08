@@ -9,11 +9,6 @@
 <body>
 <h1>Minecraft World Map</h1>
 <div id="controls">
-    <div class="control-group" id="placesListGroup">
-        <div class="control-title">Places</div>
-        <input type="search" id="placesSearch" placeholder="Filter…" autocomplete="off" />
-        <ul id="placesList"></ul>
-    </div>
     <div class="control-group">
         <div class="control-title">Type Filters</div>
         <div class="control-actions">
@@ -58,7 +53,14 @@
     </div>
 </div>
 <div id="status"></div>
-<canvas id="map" width="900" height="650"></canvas>
+<div id="map-area">
+    <div class="control-group" id="placesListGroup">
+        <div class="control-title">Places</div>
+        <input type="search" id="placesSearch" placeholder="Filter…" autocomplete="off" />
+        <ul id="placesList"></ul>
+    </div>
+    <canvas id="map" width="900" height="650"></canvas>
+</div>
 
 <div id="loginOverlay" class="modal-overlay hidden">
     <div class="modal">
