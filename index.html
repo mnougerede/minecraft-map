@@ -62,13 +62,12 @@
 <div id="loginOverlay" class="modal-overlay hidden">
     <div class="modal">
         <h2>Login</h2>
-        <p class="modal-subtitle">Enter your email to receive a magic link. No password needed.</p>
-        <form id="loginForm" autocomplete="off">
-            <label>Email<input id="login-email" type="email" required /></label>
+        <form id="loginForm" autocomplete="on">
+            <label>Email<input id="login-email" type="email" required autocomplete="email" /></label>
+            <label>Password<input id="login-password" type="password" required autocomplete="current-password" /></label>
             <div id="login-error" class="form-error hidden"></div>
-            <div id="login-sent" class="form-success hidden">Check your email for a login link!</div>
             <div class="form-actions">
-                <button type="submit" id="login-submit">Send Link</button>
+                <button type="submit" id="login-submit">Login</button>
                 <button type="button" id="login-cancel">Cancel</button>
             </div>
         </form>
