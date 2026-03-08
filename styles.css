@@ -51,6 +51,10 @@ body {
 
 /* Canvas edit-mode border is applied via JS (canvas.style.outline) */
 
+#map {
+    touch-action: none; /* prevent browser pan/zoom interfering with custom touch handlers */
+}
+
 /* Modal overlay */
 .modal-overlay {
     position: fixed;
@@ -200,4 +204,35 @@ body {
     padding: 1px 5px;
     cursor: pointer;
     flex-shrink: 0;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.auth-status {
+    display: block;
+    font-size: 0.8rem;
+    color: #555;
+    margin-bottom: 6px;
+    word-break: break-all;
+}
+
+.modal-subtitle {
+    margin: 0 0 12px;
+    color: #666;
+    font-size: 0.875rem;
+}
+
+.form-success {
+    color: #2e7d32;
+    font-size: 0.85rem;
+    background: #e8f5e9;
+    border: 1px solid #a5d6a7;
+    border-radius: 4px;
+    padding: 6px 10px;
+}
+
+.form-success.hidden {
+    display: none;
 }
