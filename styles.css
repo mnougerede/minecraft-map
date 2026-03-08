@@ -51,6 +51,10 @@ body {
 
 /* Canvas edit-mode border is applied via JS (canvas.style.outline) */
 
+#map {
+    touch-action: none; /* prevent browser pan/zoom interfering with custom touch handlers */
+}
+
 /* Modal overlay */
 .modal-overlay {
     position: fixed;
