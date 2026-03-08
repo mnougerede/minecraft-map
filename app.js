@@ -564,9 +564,9 @@ function updateAuthUI(session) {
 function openLoginModal() {
     document.getElementById("loginOverlay").classList.remove("hidden");
     document.getElementById("login-error").classList.add("hidden");
-    document.getElementById("login-sent").classList.add("hidden");
     document.getElementById("login-submit").disabled = false;
     document.getElementById("login-email").value = "";
+    document.getElementById("login-password").value = "";
     document.getElementById("login-email").focus();
 }
 
@@ -577,12 +577,11 @@ function closeLoginModal() {
 async function handleLoginSubmit(e) {
     e.preventDefault();
     const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-password").value;
     const errEl = document.getElementById("login-error");
-    const sentEl = document.getElementById("login-sent");
     const submitBtn = document.getElementById("login-submit");
 
     errEl.classList.add("hidden");
-    sentEl.classList.add("hidden");
     submitBtn.disabled = true;
 
     const client = getSupabaseClient();
@@ -593,13 +592,13 @@ async function handleLoginSubmit(e) {
         return;
     }
 
-    const { error } = await client.auth.signInWithOtp({ email });
+    const { error } = await client.auth.signInWithPassword({ email, password });
     if (error) {
-        errEl.textContent = error.message;
+        errEl.textContent = "Incorrect email or password.";
         errEl.classList.remove("hidden");
         submitBtn.disabled = false;
     } else {
-        sentEl.classList.remove("hidden");
+        closeLoginModal();
     }
 }
 
