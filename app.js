@@ -771,7 +771,7 @@ function buildPlacesList() {
 
         const coordSpan = document.createElement("span");
         coordSpan.className = "places-coords";
-        coordSpan.textContent = `${p.x}, ${p.z}` + (p.y != null ? `, ${p.y}` : "");
+        coordSpan.textContent = `${p.x}` + (p.y != null ? `, ${p.y}` : "") + `, ${p.z}`;
 
         if (currentUser) {
             const editBtn = document.createElement("button");
